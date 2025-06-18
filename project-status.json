@@ -1,0 +1,24 @@
+{
+  "project": "AutonomesAI v2.1",
+  "version": "0.1.0",
+  "current_phase": 0,
+  "current_sprint": "0-A",
+  "sprint_status": "COMPLETED",
+  "completed_sprints": ["0-A"],
+  "active_tasks": [
+    "Setup OpenTelemetry trace export",
+    "Create first Git tag", 
+    "Init Sprint 0-B: Trace everything"
+  ],
+  "next_session_focus": "Complete Sprint 0-B: Trace everything",
+  "blockers": [],
+  "rollback_points": ["sprint-0-a-complete"],
+  "last_updated": "2025-06-18T16:23:52Z",
+  "environment_verified": true,
+  "dependencies": {
+    "langgraph": "0.4.8",
+    "opentelemetry-sdk": "1.27.0",
+    "python": ">=3.11",
+    "node": ">=20"
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "name": "AutonomesAI Dev Environment",
+  "image": "mcr.microsoft.com/devcontainers/python:3.11",
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "20"
+    },
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {},
+    "ghcr.io/devcontainers/features/git:1": {}
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-python.black-formatter",
+        "ms-python.pylint",
+        "bradlc.vscode-tailwindcss",
+        "ms-vscode.vscode-json"
+      ],
+      "settings": {
+        "python.defaultInterpreterPath": "/usr/local/bin/python",
+        "python.formatting.provider": "black",
+        "python.linting.enabled": true,
+        "python.linting.pylintEnabled": true,
+        "editor.formatOnSave": true
+      }
+    }
+  },
+  "postCreateCommand": "pip install --upgrade pip && pip install langgraph==0.4.8 opentelemetry-sdk==1.27.0 pytest==7.4.0 black==23.7.0",
+  "remoteUser": "vscode",
+  "forwardPorts": [3000, 8000, 11434],
+  "portsAttributes": {
+    "3000": {
+      "label": "Next.js Frontend"
+    },
+    "8000": {
+      "label": "FastAPI Backend"  
+    },
+    "11434": {
+      "label": "Ollama API"
+    }
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json", 
+  "extends": [
+    "config:base"
+  ],
+  "packageRules": [
+    {
+      "matchPackageNames": ["langgraph"],
+      "matchCurrentVersion": "0.4.8",
+      "enabled": false,
+      "description": "Pin LangGraph to 0.4.8 per masterplan risk mitigation"
+    },
+    {
+      "matchPackageNames": ["opentelemetry-sdk", "opentelemetry-api"],
+      "schedule": ["before 6am on monday"],
+      "description": "Update OTel weekly during low-traffic hours"
+    }
+  ],
+  "timezone": "Europe/Copenhagen",
+  "schedule": ["after 6pm on sunday"],
+  "labels": ["dependencies"],
+  "assignees": ["@yousef"]
+}

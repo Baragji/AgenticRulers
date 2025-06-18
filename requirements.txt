@@ -1,0 +1,18 @@
+# AutonomesAI v2.1 Core Dependencies (Juni 2025)
+# Minimal viable set for Sprint 0-A
+
+# Core AI Framework - LangGraph with compatible dependencies
+langgraph==0.4.8
+
+# Observability
+opentelemetry-sdk==1.27.0
+opentelemetry-api==1.27.0
+
+# Development & Testing
+pytest>=7.4.0
+black>=23.7.0
+
+# Future upgrades (conditional - add in later sprints)
+# trulens-eval==1.5.1  # Add in Sprint 2-A
+# crewai==0.126.0      # Add in Sprint 2-B if triggered
+# pyautogen>=0.6.1     # Add in Sprint 2-B if triggered
