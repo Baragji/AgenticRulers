@@ -166,8 +166,10 @@ def main():
                 "messages": [],
                 "status": "initializing", 
                 "data": {
-                    "session_id": "sprint-0-a-test",
-                    "environment": "development"
+                    "session_id": "sprint-1-a-test",
+                    "environment": "development",
+                    "sprint": "1-A",
+                    "features": ["ollama_integration", "fastapi_backend"]
                 }
             }
             

@@ -1,0 +1,85 @@
+# AutonomesAI v2.1 - Docker Compose Stack
+# Sprint 1-A: Ollama + Next.js 15 + Telemetry
+
+version: '3.8'
+
+services:
+  # Ollama local LLM service
+  ollama:
+    image: ollama/ollama:latest
+    container_name: autonomes_ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    environment:
+      - OLLAMA_ORIGINS=http://localhost:3000,http://localhost:8000
+      - OLLAMA_HOST=0.0.0.0:11434
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    deploy:
+      resources:
+        limits:
+          memory: 8G
+        reservations:
+          memory: 4G
+
+  # Backend API service
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: autonomes_backend
+    ports:
+      - "8000:8000"
+    environment:
+      - OLLAMA_BASE_URL=http://ollama:11434
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:14268/api/traces
+      - DEPLOYMENT_ENVIRONMENT=docker
+      - OTEL_SAMPLING_RATE=1.0
+    depends_on:
+      ollama:
+        condition: service_healthy
+    restart: unless-stopped
+    volumes:
+      - ./telemetry:/app/telemetry:ro
+      - ./prompts:/app/prompts:ro
+
+  # Frontend Next.js 15 service
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: autonomes_frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+      - NEXT_PUBLIC_ENVIRONMENT=docker
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  # Jaeger for distributed tracing (optional)
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: autonomes_jaeger
+    ports:
+      - "14268:14268"  # Jaeger collector
+      - "16686:16686"  # Jaeger UI
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    restart: unless-stopped
+
+volumes:
+  ollama_data:
+    driver: local
+
+networks:
+  default:
+    name: autonomes_network
