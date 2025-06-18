@@ -41,6 +41,12 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+# Next.js
+frontend/.next/
+frontend/out/
+frontend/build/
+frontend/.vercel
+
 # Build artifacts
 dist/
 build/

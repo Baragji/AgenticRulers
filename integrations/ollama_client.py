@@ -13,6 +13,10 @@ from typing import Dict, Any, List, Optional, AsyncGenerator
 from urllib.parse import urljoin
 import os
 
+# Constants
+OLLAMA_HEALTH_STATUS_KEY = "ollama.health.status"
+OLLAMA_UNAVAILABLE_MESSAGE = "Ollama service is not available"
+
 from telemetry.otel_config import get_tracer, create_gen_ai_span, otel_config
 
 logger = logging.getLogger(__name__)
@@ -74,19 +78,19 @@ class OllamaClient:
                         data = await response.json()
                         models_count = len(data.get("models", []))
                         
-                        span.set_attribute("ollama.health.status", "healthy")
+                        span.set_attribute(OLLAMA_HEALTH_STATUS_KEY, "healthy")
                         span.set_attribute("ollama.models.count", models_count)
                         
                         logger.info(f"✅ Ollama is healthy with {models_count} models available")
                         return True
                     else:
-                        span.set_attribute("ollama.health.status", "unhealthy")
+                        span.set_attribute(OLLAMA_HEALTH_STATUS_KEY, "unhealthy")
                         span.set_attribute("ollama.health.status_code", response.status)
                         logger.warning(f"⚠️ Ollama health check failed with status {response.status}")
                         return False
                         
             except Exception as e:
-                span.set_attribute("ollama.health.status", "error")
+                span.set_attribute(OLLAMA_HEALTH_STATUS_KEY, "error")
                 span.add_event("health_check_error", {"error": str(e)})
                 logger.error(f"❌ Ollama health check error: {str(e)}")
                 return False
@@ -96,7 +100,7 @@ class OllamaClient:
         with tracer.start_as_current_span("ollama_list_models") as span:
             try:
                 if not await self.health_check():
-                    raise ConnectionError("Ollama service is not available")
+                    raise ConnectionError(OLLAMA_UNAVAILABLE_MESSAGE)
                 
                 url = urljoin(self.base_url, "/api/tags")
                 
@@ -181,7 +185,7 @@ class OllamaClient:
             
             try:
                 if not await self.health_check():
-                    raise ConnectionError("Ollama service is not available")
+                    raise ConnectionError(OLLAMA_UNAVAILABLE_MESSAGE)
                 
                 url = urljoin(self.base_url, "/api/generate")
                 payload = {
@@ -273,7 +277,7 @@ class OllamaClient:
             
             try:
                 if not await self.health_check():
-                    raise ConnectionError("Ollama service is not available")
+                    raise ConnectionError(OLLAMA_UNAVAILABLE_MESSAGE)
                 
                 url = urljoin(self.base_url, "/api/chat")
                 payload = {

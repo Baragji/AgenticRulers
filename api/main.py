@@ -79,7 +79,7 @@ async def startup_event():
         
         # Test LangGraph compilation
         graph = create_autonomes_graph()
-        compiled_graph = graph.compile()
+        _ = graph.compile()  # Test compilation, result not used
         
         span.add_event("services_initialized", {
             "ollama_ready": ollama_client.is_ready(),
@@ -149,7 +149,7 @@ async def chat_completion(request: ChatRequest):
             }
             
             # Execute the graph
-            result = await compiled_graph.ainvoke(initial_state)
+            _ = await compiled_graph.ainvoke(initial_state)  # Graph execution for telemetry
             
             # Generate response using Ollama
             ollama_response = await ollama_client.generate(

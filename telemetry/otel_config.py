@@ -61,7 +61,7 @@ class AutonomesOTelConfig:
         # Setup sampling - respect PII and performance
         if self.environment == "development":
             sampler = TraceIdRatioBased(self.sampling_rate)
-            logger.info(f"🔍 Tracing: {self.sampling_rate*100}% sampling rate for development")
+            logger.info(f"🔍 Tracing: {self.sampling_rate*100:.1f}% sampling rate for development")
         else:
             sampler = TraceIdRatioBased(1.0)  # 100% in production
             logger.info("🔍 Tracing: 100% sampling rate for production")

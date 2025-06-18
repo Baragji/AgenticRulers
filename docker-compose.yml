@@ -1,8 +1,6 @@
 # AutonomesAI v2.1 - Docker Compose Stack
 # Sprint 1-A: Ollama + Next.js 15 + Telemetry
 
-version: '3.8'
-
 services:
   # Ollama local LLM service
   ollama:
