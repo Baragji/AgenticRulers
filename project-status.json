@@ -2,17 +2,17 @@
   "project": "AutonomesAI v2.1",
   "version": "0.1.0",
   "current_phase": 0,
-  "current_sprint": "0-A",
+  "current_sprint": "0-B",
   "sprint_status": "COMPLETED",
-  "completed_sprints": ["0-A"],
+  "completed_sprints": ["0-A", "0-B"],
   "active_tasks": [
-    "Setup OpenTelemetry trace export",
-    "Create first Git tag", 
-    "Init Sprint 0-B: Trace everything"
+    "Setup Ollama Docker service",
+    "Create Next.js 15 scaffold", 
+    "Init Sprint 1-A: Local model + web app"
   ],
-  "next_session_focus": "Complete Sprint 0-B: Trace everything",
+  "next_session_focus": "Complete Sprint 1-A: Local model + web app",
   "blockers": [],
-  "rollback_points": ["sprint-0-a-complete"],
+  "rollback_points": ["sprint-0-a-complete", "sprint-0-b-complete"],
   "last_updated": "2025-06-18T16:23:52Z",
   "environment_verified": true,
   "dependencies": {

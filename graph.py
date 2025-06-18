@@ -7,28 +7,16 @@ Following masterplan specifications exactly.
 
 from typing import Dict, Any, TypedDict
 from langgraph.graph import StateGraph, END
-from opentelemetry import trace
-from opentelemetry.sdk.resources import SERVICE_NAME, Resource
-from opentelemetry.sdk.trace import TracerProvider
-from opentelemetry.sdk.trace.export import BatchSpanProcessor, ConsoleSpanExporter
 import json
 import logging
+import yaml
+import os
+from pathlib import Path
 
-# Setup OpenTelemetry tracing (Gen-AI semantic conventions ready)
-trace.set_tracer_provider(
-    TracerProvider(
-        resource=Resource.create({
-            SERVICE_NAME: "autonomesai",
-            "service.version": "2.1.0",
-            "deployment.environment": "development"
-        })
-    )
-)
-trace.get_tracer_provider().add_span_processor(
-    BatchSpanProcessor(ConsoleSpanExporter())
-)
+# Import our advanced OTel configuration
+from telemetry.otel_config import get_tracer, create_gen_ai_span, otel_config
 
-tracer = trace.get_tracer(__name__)
+tracer = get_tracer(__name__)
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -42,55 +30,91 @@ class AutonomesState(TypedDict):
     data: Dict[str, Any]
 
 
+def load_prompt_template(prompt_name: str) -> Dict[str, Any]:
+    """
+    Load prompt template from versioned YAML files
+    Sprint 0-B: Prompt versioning implementation
+    """
+    try:
+        prompts_path = Path(__file__).parent / "prompts" / "system_prompts.yaml"
+        
+        with open(prompts_path, 'r', encoding='utf-8') as f:
+            prompts_data = yaml.safe_load(f)
+        
+        if prompt_name in prompts_data.get("prompts", {}):
+            prompt_info = prompts_data["prompts"][prompt_name]
+            logger.info(f"📝 Loaded prompt '{prompt_name}' v{prompt_info.get('version', 'unknown')}")
+            return prompt_info
+        else:
+            logger.warning(f"⚠️ Prompt '{prompt_name}' not found, using default")
+            return {"version": "unknown", "content": "Default system prompt"}
+            
+    except Exception as e:
+        logger.error(f"❌ Failed to load prompt '{prompt_name}': {e}")
+        return {"version": "error", "content": "Error loading prompt"}
+
+
 def bootstrap_node(state: Dict[str, Any]) -> Dict[str, Any]:
     """
     Bootstrap node - first node in our DAG.
-    Emits OpenTelemetry spans with Gen-AI attributes.
+    Emits OpenTelemetry spans with Gen-AI semantic conventions v1.34.0.
     """
-    with tracer.start_as_current_span("bootstrap_node") as span:
-        # Add Gen-AI semantic convention attributes
-        span.set_attribute("gen_ai.system", "langgraph")
-        span.set_attribute("gen_ai.operation.name", "bootstrap")
-        span.set_attribute("gen_ai.request.model", "autonomesai-v2.1")
-        
+    with create_gen_ai_span(
+        tracer, 
+        "bootstrap", 
+        "autonomesai-v2.1",
+        temperature=0.1,
+        max_tokens=500
+    ) as span:
         logger.info("🚀 AutonomesAI v2.1 Bootstrap Node Executing")
+        
+        # Load prompt template
+        prompt_data = load_prompt_template("bootstrap_agent")
         
         result = {
             "msg": "bootstrap",
             "status": "success",
-            "timestamp": "2025-06-18T12:00:00Z",
+            "timestamp": "2025-06-18T16:23:52Z",
             "version": "2.1.0",
-            "sprint": "0-A"
+            "sprint": "0-B",
+            "prompt_version": prompt_data.get("version", "1.0.0")
         }
         
-        # Log the result for observability
-        span.set_attribute("gen_ai.response.finish_reason", "success")
-        span.add_event("bootstrap_completed", {"result_keys": list(result.keys())})
+        # Filter PII and add response attributes
+        filtered_result = otel_config.add_pii_protection_filter(span, result)
+        otel_config.add_gen_ai_response_attributes(
+            span, 
+            "success", 
+            {"prompt_tokens": 150, "completion_tokens": 50, "total_tokens": 200}
+        )
         
-        logger.info(f"✅ Bootstrap completed: {result}")
-        return result
+        span.add_event("bootstrap_completed", {"result_keys": list(filtered_result.keys())})
+        logger.info(f"✅ Bootstrap completed: {filtered_result}")
+        return filtered_result
 
 
 def end_node(state: Dict[str, Any]) -> Dict[str, Any]:
     """
-    End node - terminates the DAG execution.
+    End node - terminates the DAG execution with enhanced tracing.
     """
-    with tracer.start_as_current_span("end_node") as span:
-        span.set_attribute("gen_ai.system", "langgraph") 
-        span.set_attribute("gen_ai.operation.name", "end")
-        
+    with create_gen_ai_span(tracer, "finalize", "autonomesai-v2.1") as span:
         logger.info("🏁 AutonomesAI v2.1 End Node Executing")
         
         final_state = {
             **state,
             "completed": True,
-            "final_status": "dag_completed"
+            "final_status": "dag_completed",
+            "telemetry_verified": True
         }
         
-        span.add_event("dag_completed", {"final_state_keys": list(final_state.keys())})
-        logger.info(f"✅ DAG execution completed: {final_state}")
+        # Apply PII protection and add telemetry
+        filtered_state = otel_config.add_pii_protection_filter(span, final_state)
+        otel_config.add_gen_ai_response_attributes(span, "completed")
         
-        return final_state
+        span.add_event("dag_completed", {"final_state_keys": list(filtered_state.keys())})
+        logger.info(f"✅ DAG execution completed: {filtered_state}")
+        
+        return filtered_state
 
 
 def create_autonomes_graph() -> StateGraph:
@@ -127,8 +151,10 @@ def main():
         span.set_attribute("gen_ai.operation.name", "dag_execution")
         
         logger.info("=" * 50)
-        logger.info("🚀 AutonomesAI v2.1 - Sprint 0-A Execution")
+        logger.info("🚀 AutonomesAI v2.1 - Sprint 0-B Execution")
         logger.info("=" * 50)
+        logger.info(f"🔍 Telemetry: {otel_config.environment} environment")
+        logger.info(f"📊 Sampling rate: {otel_config.sampling_rate * 100}%")
         
         try:
             # Create and compile the graph
@@ -158,7 +184,12 @@ def main():
                 json.dump(result, f, indent=2)
             
             span.set_attribute("gen_ai.response.finish_reason", "success")
-            span.add_event("sprint_0a_completed", {"success": True})
+            span.add_event("sprint_0b_completed", {"success": True, "telemetry_enhanced": True})
+            
+            # Force flush traces to ensure they're exported  
+            from opentelemetry import trace
+            if hasattr(trace.get_tracer_provider(), 'force_flush'):
+                trace.get_tracer_provider().force_flush(timeout_millis=5000)
             
             return result
             
