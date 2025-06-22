@@ -1,17 +1,19 @@
 # AutonomesAI v2.1 Core Dependencies (Juni 2025)
-# Minimal viable set for Sprint 0-A
+# LOCKED VERSIONS - No auto-updates for stability
+# Last verified: 2025-06-22
 
-# Core AI Framework - LangGraph with compatible dependencies
-langgraph==0.4.8
+# Core AI Framework - EXACT versions only
+langgraph==0.4.8          # Frozen at working version
+langchain-core==0.2.38    # Required by langgraph
 
-# Observability
+# Observability - Stable releases only  
 opentelemetry-sdk==1.27.0
 opentelemetry-api==1.27.0
 
-# Web Framework
-fastapi>=0.100.0
-uvicorn[standard]>=0.22.0
-aiohttp>=3.8.0
+# Web Framework - Proven versions
+fastapi==0.100.1          # Exact version, not >=
+uvicorn[standard]==0.22.0  # Locked
+aiohttp==3.8.6             # Stable release
 
 # Development & Testing
 pytest>=7.4.0
